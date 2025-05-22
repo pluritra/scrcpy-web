@@ -22,6 +22,8 @@ src = [
     'src/fps_counter.c',
     'src/frame_buffer.c',
     'src/input_manager.c',
+    'src/web_server.c',
+    'deps/work/sources/mongoose-7.11/mongoose.c',  # Add mongoose source
     'src/keyboard_sdk.c',
     'src/mouse_capture.c',
     'src/mouse_sdk.c',
@@ -178,7 +180,7 @@ conf.set('HAVE_USB', usb_support)
 
 configure_file(configuration: conf, output: 'config.h')
 
-src_dir = include_directories('src')
+src_dir = include_directories('src', 'deps/work/sources/mongoose-7.11/')
 
 executable('scrcpy', src,
            dependencies: dependencies,

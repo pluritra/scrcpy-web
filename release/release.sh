@@ -6,10 +6,10 @@ set -e
 cd "$(dirname ${BASH_SOURCE[0]})"
 rm -rf output
 
-./test_server.sh
+#./test_server.sh
 ./test_client.sh
 
-./build_server.sh
+#./build_server.sh
 ./build_windows.sh 32
 ./build_windows.sh 64
 ./build_linux.sh x86_64

@@ -13,6 +13,8 @@
 
 #define DOWNCAST(SINK) container_of(SINK, struct sc_screen, frame_sink)
 
+extern struct sc_web_server web_server;
+
 static inline struct sc_size
 get_oriented_size(struct sc_size size, enum sc_orientation orientation) {
     struct sc_size oriented_size;
@@ -697,11 +699,19 @@ sc_screen_update_frame(struct sc_screen *screen) {
             av_frame_unref(screen->resume_frame);
         }
         sc_frame_buffer_consume(&screen->fb, screen->resume_frame);
+            
+        // Update web server frame
+        sc_web_server_set_frame(&web_server, screen->frame);
+        
         return true;
     }
 
     av_frame_unref(screen->frame);
     sc_frame_buffer_consume(&screen->fb, screen->frame);
+    
+    // Update web server frame
+    sc_web_server_set_frame(&web_server, screen->frame);
+    
     return sc_screen_apply_frame(screen);
 }
 

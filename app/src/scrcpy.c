@@ -44,6 +44,9 @@
 #ifdef HAVE_V4L2
 # include "v4l2_sink.h"
 #endif
+#include "web_server.h"
+
+extern struct sc_web_server web_server;
 
 struct scrcpy {
     struct sc_server server;
@@ -933,8 +936,12 @@ aoa_complete:
         }
     }
 
+    sc_web_server_init(&web_server, &s->screen.im, "0.0.0.0:8080");
+    sc_web_server_start(&web_server);
+
     ret = event_loop(s);
     terminate_event_loop();
+    sc_web_server_stop(&web_server);
     LOGD("quit...");
 
     if (options->video_playback) {

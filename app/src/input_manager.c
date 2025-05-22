@@ -48,7 +48,7 @@ sc_input_manager_init(struct sc_input_manager *im,
     im->next_sequence = 1; // 0 is reserved for SC_SEQUENCE_INVALID
 }
 
-static void
+void
 send_keycode(struct sc_input_manager *im, enum android_keycode keycode,
              enum sc_action action, const char *name) {
     assert(im->controller && im->kp);
@@ -68,44 +68,44 @@ send_keycode(struct sc_input_manager *im, enum android_keycode keycode,
     }
 }
 
-static inline void
+void
 action_home(struct sc_input_manager *im, enum sc_action action) {
     send_keycode(im, AKEYCODE_HOME, action, "HOME");
 }
 
-static inline void
+void
 action_back(struct sc_input_manager *im, enum sc_action action) {
     send_keycode(im, AKEYCODE_BACK, action, "BACK");
 }
 
-static inline void
+void
 action_app_switch(struct sc_input_manager *im, enum sc_action action) {
     send_keycode(im, AKEYCODE_APP_SWITCH, action, "APP_SWITCH");
 }
 
-static inline void
+void
 action_power(struct sc_input_manager *im, enum sc_action action) {
     send_keycode(im, AKEYCODE_POWER, action, "POWER");
 }
 
-static inline void
+void
 action_volume_up(struct sc_input_manager *im, enum sc_action action) {
     send_keycode(im, AKEYCODE_VOLUME_UP, action, "VOLUME_UP");
 }
 
-static inline void
+void
 action_volume_down(struct sc_input_manager *im, enum sc_action action) {
     send_keycode(im, AKEYCODE_VOLUME_DOWN, action, "VOLUME_DOWN");
 }
 
-static inline void
+void
 action_menu(struct sc_input_manager *im, enum sc_action action) {
     send_keycode(im, AKEYCODE_MENU, action, "MENU");
 }
 
 // turn the screen on if it was off, press BACK otherwise
 // If the screen is off, it is turned on only on ACTION_DOWN
-static void
+void
 press_back_or_turn_screen_on(struct sc_input_manager *im,
                              enum sc_action action) {
     assert(im->controller && im->kp);
@@ -121,7 +121,7 @@ press_back_or_turn_screen_on(struct sc_input_manager *im,
     }
 }
 
-static void
+void
 expand_notification_panel(struct sc_input_manager *im) {
     assert(im->controller);
 
@@ -133,7 +133,7 @@ expand_notification_panel(struct sc_input_manager *im) {
     }
 }
 
-static void
+void
 expand_settings_panel(struct sc_input_manager *im) {
     assert(im->controller);
 
@@ -145,7 +145,7 @@ expand_settings_panel(struct sc_input_manager *im) {
     }
 }
 
-static void
+void
 collapse_panels(struct sc_input_manager *im) {
     assert(im->controller);
 
@@ -157,7 +157,7 @@ collapse_panels(struct sc_input_manager *im) {
     }
 }
 
-static bool
+bool
 get_device_clipboard(struct sc_input_manager *im, enum sc_copy_key copy_key) {
     assert(im->controller && im->kp);
 
@@ -173,7 +173,7 @@ get_device_clipboard(struct sc_input_manager *im, enum sc_copy_key copy_key) {
     return true;
 }
 
-static bool
+bool
 set_device_clipboard(struct sc_input_manager *im, bool paste,
                      uint64_t sequence) {
     assert(im->controller && im->kp);
@@ -206,7 +206,7 @@ set_device_clipboard(struct sc_input_manager *im, bool paste,
     return true;
 }
 
-static void
+void
 set_display_power(struct sc_input_manager *im, bool on) {
     assert(im->controller);
 
@@ -219,7 +219,7 @@ set_display_power(struct sc_input_manager *im, bool on) {
     }
 }
 
-static void
+void
 switch_fps_counter_state(struct sc_input_manager *im) {
     struct sc_fps_counter *fps_counter = &im->screen->fps_counter;
 
@@ -233,7 +233,7 @@ switch_fps_counter_state(struct sc_input_manager *im) {
     }
 }
 
-static void
+void
 clipboard_paste(struct sc_input_manager *im) {
     assert(im->controller && im->kp);
 
@@ -264,7 +264,7 @@ clipboard_paste(struct sc_input_manager *im) {
     }
 }
 
-static void
+void
 rotate_device(struct sc_input_manager *im) {
     assert(im->controller);
 
@@ -276,7 +276,7 @@ rotate_device(struct sc_input_manager *im) {
     }
 }
 
-static void
+void
 open_hard_keyboard_settings(struct sc_input_manager *im) {
     assert(im->controller);
 
@@ -330,7 +330,7 @@ sc_input_manager_process_text_input(struct sc_input_manager *im,
     im->kp->ops->process_text(im->kp, &evt);
 }
 
-static bool
+bool
 simulate_virtual_finger(struct sc_input_manager *im,
                         enum android_motionevent_action action,
                         struct sc_point point) {
