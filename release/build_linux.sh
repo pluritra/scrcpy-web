@@ -7,6 +7,7 @@ cd .. # root project dir
 if [[ $# != 1 ]]
 then
     echo "Syntax: $0 <arch>" >&2
+    echo "   <arch>: x86_64" >&2
     exit 1
 fi
 

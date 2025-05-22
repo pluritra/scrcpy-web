@@ -23,7 +23,7 @@ src = [
     'src/frame_buffer.c',
     'src/input_manager.c',
     'src/web_server.c',
-    'deps/work/sources/mongoose-7.11/mongoose.c',  # Add mongoose source
+    'deps/sources/mongoose/mongoose.c',  # Add mongoose source
     'src/keyboard_sdk.c',
     'src/mouse_capture.c',
     'src/mouse_sdk.c',
@@ -119,6 +119,7 @@ dependencies = [
     dependency('libavcodec', version: '>= 57.37', static: static),
     dependency('libavutil', static: static),
     dependency('libswresample', static: static),
+    dependency('libswscale', static: static),
     dependency('sdl2', version: '>= 2.0.5', static: static),
 ]
 
@@ -180,13 +181,13 @@ conf.set('HAVE_USB', usb_support)
 
 configure_file(configuration: conf, output: 'config.h')
 
-src_dir = include_directories('src', 'deps/work/sources/mongoose-7.11/')
+src_dir = include_directories('src', 'deps/sources/mongoose/')
 
 executable('scrcpy', src,
            dependencies: dependencies,
            include_directories: src_dir,
            install: true,
-           c_args: [])
+           c_args: ['-D_GNU_SOURCE'])
 
 # <https://mesonbuild.com/Builtin-options.html#directories>
 datadir = get_option('datadir') # by default 'share'

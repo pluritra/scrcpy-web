@@ -155,6 +155,7 @@ error:
 
 // Route handler for /api/v1/frame
 static void handle_frame(struct mg_connection *nc, struct mg_http_message *hm, struct sc_web_server *server) {
+    LOGI("Handling frame request");
     if (!server->current_frame) {
         send_error_response(nc, 503, "No frame available");
         return;
@@ -192,6 +193,7 @@ static void handle_frame(struct mg_connection *nc, struct mg_http_message *hm, s
 
 // Route handler for /api/v1/keycode
 static void handle_keycode(struct mg_connection *nc, struct mg_http_message *hm, struct sc_input_manager *im) {
+    LOGI("Handling keycode request");
     char keycode[32], action[32];
     
     mg_http_get_var(&hm->body, "keycode", keycode, sizeof(keycode));
@@ -206,6 +208,7 @@ static void handle_keycode(struct mg_connection *nc, struct mg_http_message *hm,
 
 // Route handler for /api/v1/home
 static void handle_home(struct mg_connection *nc, struct mg_http_message *hm, struct sc_input_manager *im) {
+    LOGI("Handling home request");
     char action[32];
     mg_http_get_var(&hm->body, "action", action, sizeof(action));
     enum sc_action act = strcmp(action, "up") == 0 ? SC_ACTION_UP : SC_ACTION_DOWN;
@@ -216,6 +219,7 @@ static void handle_home(struct mg_connection *nc, struct mg_http_message *hm, st
 
 // Route handler for /api/v1/back
 static void handle_back(struct mg_connection *nc, struct mg_http_message *hm, struct sc_input_manager *im) {
+    LOGI("Handling back request");
     char action[32];
     mg_http_get_var(&hm->body, "action", action, sizeof(action));
     enum sc_action act = strcmp(action, "up") == 0 ? SC_ACTION_UP : SC_ACTION_DOWN;
@@ -226,6 +230,7 @@ static void handle_back(struct mg_connection *nc, struct mg_http_message *hm, st
 
 // Route handler for /api/v1/app_switch
 static void handle_app_switch(struct mg_connection *nc, struct mg_http_message *hm, struct sc_input_manager *im) {
+    LOGI("Handling app switch request");
     char action[32];
     mg_http_get_var(&hm->body, "action", action, sizeof(action));
     enum sc_action act = strcmp(action, "up") == 0 ? SC_ACTION_UP : SC_ACTION_DOWN;
@@ -236,6 +241,7 @@ static void handle_app_switch(struct mg_connection *nc, struct mg_http_message *
 
 // Route handler for /api/v1/power
 static void handle_power(struct mg_connection *nc, struct mg_http_message *hm, struct sc_input_manager *im) {
+    LOGI("Handling power request");
     char action[32];
     mg_http_get_var(&hm->body, "action", action, sizeof(action));
     enum sc_action act = strcmp(action, "up") == 0 ? SC_ACTION_UP : SC_ACTION_DOWN;
@@ -246,6 +252,7 @@ static void handle_power(struct mg_connection *nc, struct mg_http_message *hm, s
 
 // Route handler for /api/v1/volume
 static void handle_volume(struct mg_connection *nc, struct mg_http_message *hm, struct sc_input_manager *im) {
+    LOGI("Handling volume request");
     char direction[32], action[32];
     mg_http_get_var(&hm->body, "direction", direction, sizeof(direction));
     mg_http_get_var(&hm->body, "action", action, sizeof(action));
@@ -262,6 +269,7 @@ static void handle_volume(struct mg_connection *nc, struct mg_http_message *hm, 
 
 // Route handler for /api/v1/menu
 static void handle_menu(struct mg_connection *nc, struct mg_http_message *hm, struct sc_input_manager *im) {
+    LOGI("Handling menu request");
     char action[32];
     mg_http_get_var(&hm->body, "action", action, sizeof(action));
     enum sc_action act = strcmp(action, "up") == 0 ? SC_ACTION_UP : SC_ACTION_DOWN;
@@ -272,6 +280,7 @@ static void handle_menu(struct mg_connection *nc, struct mg_http_message *hm, st
 
 // Route handler for /api/v1/back_or_screen_on
 static void handle_back_or_screen_on(struct mg_connection *nc, struct mg_http_message *hm, struct sc_input_manager *im) {
+    LOGI("Handling back or screen on request");
     char action[32];
     mg_http_get_var(&hm->body, "action", action, sizeof(action));
     enum sc_action act = strcmp(action, "up") == 0 ? SC_ACTION_UP : SC_ACTION_DOWN;
@@ -282,6 +291,7 @@ static void handle_back_or_screen_on(struct mg_connection *nc, struct mg_http_me
 
 // Route handler for various panel actions
 static void handle_panel_action(struct mg_connection *nc, struct mg_http_message *hm, struct sc_input_manager *im, const char *action) {
+    LOGI("Handling panel action request: %s", action);
     if (strcmp(action, "expand_notification") == 0) {
         expand_notification_panel(im);
     } else if (strcmp(action, "expand_settings") == 0) {
@@ -294,6 +304,7 @@ static void handle_panel_action(struct mg_connection *nc, struct mg_http_message
 
 // Route handler for clipboard operations
 static void handle_clipboard(struct mg_connection *nc, struct mg_http_message *hm, struct sc_input_manager *im) {
+    LOGI("Handling clipboard request");
     char action[32];
     mg_http_get_var(&hm->body, "action", action, sizeof(action));
     
@@ -308,6 +319,7 @@ static void handle_clipboard(struct mg_connection *nc, struct mg_http_message *h
 
 // Route handler for display power
 static void handle_display_power(struct mg_connection *nc, struct mg_http_message *hm, struct sc_input_manager *im) {
+    LOGI("Handling display power request");
     char state[32];
     mg_http_get_var(&hm->body, "state", state, sizeof(state));
     bool power_on = strcmp(state, "on") == 0;
@@ -318,18 +330,21 @@ static void handle_display_power(struct mg_connection *nc, struct mg_http_messag
 
 // Route handler for device rotation
 static void handle_rotate_device(struct mg_connection *nc, struct mg_http_message *hm, struct sc_input_manager *im) {
+    LOGI("Handling rotate device request");
     rotate_device(im);
     send_json_response(nc, 200, "{\"status\": \"success\"}");
 }
 
 // Route handler for keyboard settings
 static void handle_keyboard_settings(struct mg_connection *nc, struct mg_http_message *hm, struct sc_input_manager *im) {
+    LOGI("Handling keyboard settings request");
     open_hard_keyboard_settings(im);
     send_json_response(nc, 200, "{\"status\": \"success\"}");
 }
 
 // Route handler for virtual finger simulation
 static void handle_virtual_finger(struct mg_connection *nc, struct mg_http_message *hm, struct sc_input_manager *im) {
+    LOGI("Handling virtual finger request");
     char action[32], x[32], y[32];
     
     mg_http_get_var(&hm->body, "action", action, sizeof(action));

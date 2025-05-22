@@ -51,7 +51,6 @@ else
         --extra-cflags="-O2 -fPIC"
         --disable-programs
         --disable-doc
-        --disable-swscale
         --disable-postproc
         --disable-avfilter
         --disable-network
@@ -59,6 +58,8 @@ else
         --disable-vulkan
         --disable-vaapi
         --disable-vdpau
+        --enable-swscale
+        --enable-swscale-alpha
         --enable-swresample
         --enable-libdav1d
         --enable-decoder=h264
@@ -84,7 +85,7 @@ else
     if [[ "$HOST" == linux ]]
     then
         conf+=(
-            --enable-libv4l2
+            #--enable-libv4l2
             --enable-outdev=v4l2
             --enable-encoder=rawvideo
         )
