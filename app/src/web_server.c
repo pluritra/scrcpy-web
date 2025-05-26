@@ -9,6 +9,8 @@
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
 #include <SDL2/SDL.h>
+#include <tesseract/capi.h>
+#include <leptonica/allheaders.h>
 #include "mongoose.h"
 
 #define API_PREFIX "/api/v1"
@@ -226,6 +228,118 @@ error:
     av_frame_free(&rgb_frame);
     sws_freeContext(sws_ctx);
     return false;
+}
+
+// Text block structure to store OCR results
+struct text_block {
+    char *text;
+    int x;
+    int y;
+    int width;
+    int height;
+};
+
+// Function to process frame with Tesseract
+static bool process_frame_ocr(const AVFrame *frame, struct text_block **blocks, int *block_count) {
+    struct SwsContext *sws_ctx = sws_getContext(
+        frame->width, frame->height, frame->format,
+        frame->width, frame->height, AV_PIX_FMT_RGB24,
+        SWS_BILINEAR, NULL, NULL, NULL);
+    
+    if (!sws_ctx) {
+        LOGE("Could not create sws context");
+        return false;
+    }
+
+    // Allocate RGB frame
+    AVFrame *rgb_frame = av_frame_alloc();
+    if (!rgb_frame) {
+        sws_freeContext(sws_ctx);
+        return false;
+    }
+
+    rgb_frame->width = frame->width;
+    rgb_frame->height = frame->height;
+    rgb_frame->format = AV_PIX_FMT_RGB24;
+    
+    int buffer_size = av_image_get_buffer_size(AV_PIX_FMT_RGB24, 
+        frame->width, frame->height, 1);
+    uint8_t *rgb_buffer = av_malloc(buffer_size);
+    
+    av_image_fill_arrays(rgb_frame->data, rgb_frame->linesize, rgb_buffer,
+        AV_PIX_FMT_RGB24, frame->width, frame->height, 1);
+    
+    // Convert to RGB
+    sws_scale(sws_ctx, (const uint8_t * const*)frame->data, frame->linesize,
+        0, frame->height, rgb_frame->data, rgb_frame->linesize);    // Initialize Tesseract
+    TessBaseAPI *api = TessBaseAPICreate();
+    if (TessBaseAPIInit3(api, NULL, "eng") != 0) {
+        LOGE("Could not initialize tesseract");
+        TessBaseAPIDelete(api);
+        av_free(rgb_buffer);
+        av_frame_free(&rgb_frame);
+        sws_freeContext(sws_ctx);
+        return false;
+    }
+
+    // Set image data
+    TessBaseAPISetImage(api, rgb_buffer, frame->width, frame->height, 3, frame->width * 3);
+    
+    // Perform OCR
+    if (TessBaseAPIRecognize(api, NULL) != 0) {
+        LOGE("Error in OCR recognition");
+        TessBaseAPIDelete(api);
+        av_free(rgb_buffer);
+        av_frame_free(&rgb_frame);
+        sws_freeContext(sws_ctx);
+        return false;
+    }
+
+    // Get result iterator
+    TessResultIterator* ri = TessBaseAPIGetIterator(api);
+    TessPageIteratorLevel level = RIL_BLOCK;
+
+    if (ri != NULL) {
+        // Count blocks first
+        *block_count = 0;
+        do {
+            (*block_count)++;
+        } while (TessResultIteratorNext(ri, level));
+
+        // Allocate blocks array
+        *blocks = (struct text_block*)malloc(sizeof(struct text_block) * (*block_count));
+        
+        // Reset iterator
+        TessResultIteratorDelete(ri);
+        ri = TessBaseAPIGetIterator(api);
+        int i = 0;
+
+        do {
+            // Get block text
+            const char* text = TessResultIteratorGetUTF8Text(ri, level);
+            int left, top, right, bottom;
+            TessPageIteratorBoundingBox(ri, level, &left, &top, &right, &bottom);
+
+            (*blocks)[i].text = strdup(text);  // Make a copy since we need to free the original
+            (*blocks)[i].x = left;
+            (*blocks)[i].y = top;
+            (*blocks)[i].width = right - left;
+            (*blocks)[i].height = bottom - top;
+
+            TessDeleteText((char*)text);  // Free the text returned by GetUTF8Text
+            i++;
+        } while (TessResultIteratorNext(ri, level));
+
+        TessResultIteratorDelete(ri);
+    }
+
+    // Cleanup
+    TessBaseAPIDelete(api);
+    av_free(rgb_buffer);
+    av_frame_free(&rgb_frame);
+    sws_freeContext(sws_ctx);
+
+    return true;
 }
 
 // Route handler for /api/v1/frame
@@ -454,6 +568,61 @@ static void handle_virtual_finger(struct mg_connection *nc, struct mg_http_messa
     }
 }
 
+// Route handler for /api/v1/frame/ocr
+static void handle_frame_ocr(struct mg_connection *nc, struct mg_http_message *hm, struct sc_web_server *server) {
+    LOGI("Handling OCR frame request");
+
+    if (!server->current_frame) {
+        send_error_response(nc, 503, "No frame available");
+        return;
+    }
+
+    struct text_block *blocks;
+    int block_count;
+    
+    if (!process_frame_ocr(server->current_frame, &blocks, &block_count)) {
+        send_error_response(nc, 500, "Could not process frame with OCR");
+        return;
+    }
+
+    // Build JSON response
+    char *json_response = NULL;
+    size_t response_size = 0;
+    FILE *memstream = open_memstream(&json_response, &response_size);
+
+    fprintf(memstream, "{\"texts\":[");
+    for (int i = 0; i < block_count; i++) {
+        fprintf(memstream, 
+            "%s{\"text\":\"%s\",\"x\":%d,\"y\":%d,\"width\":%d,\"height\":%d}",
+            i > 0 ? "," : "",
+            blocks[i].text,
+            blocks[i].x,
+            blocks[i].y,
+            blocks[i].width,
+            blocks[i].height);
+        free(blocks[i].text);
+    }
+    fprintf(memstream, "]}");
+
+    // Print JSON response to console
+    LOGI("OCR response 1: %s", json_response);
+
+    fclose(memstream);
+
+    // Print JSON response to console
+    LOGI("OCR response 2: %s", json_response);
+
+    // Send response
+    send_json_response(nc, 200, json_response);
+
+    // Print JSON response to console
+    LOGI("OCR response 3: %s", json_response);
+    
+    // Cleanup
+    free(blocks);
+    free(json_response);
+}
+
 // Main event handler for all HTTP requests
 static void ev_handler(struct mg_connection *nc, int ev, void *ev_data, void *user_data) {
     struct sc_web_server *server = (struct sc_web_server *)user_data;
@@ -514,6 +683,18 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data, void *us
             handle_frame(nc, hm, server);
             return;
         }
+        LOGE("Invalid method for %s: %s", API_PREFIX "/frame", hm->method.ptr);
+        send_error_response(nc, 405, "Method not allowed");
+        return;
+    }
+
+    // Handle frame OCR endpoint
+    if (mg_vcmp(&hm->uri, API_PREFIX "/frame/ocr") == 0) {
+        if (mg_vcmp(&hm->method, "GET") == 0) {
+            handle_frame_ocr(nc, hm, server);
+            return;
+        }
+        LOGE("Invalid method for %s: %s", API_PREFIX "/frame/ocr", hm->method.ptr);
         send_error_response(nc, 405, "Method not allowed");
         return;
     }

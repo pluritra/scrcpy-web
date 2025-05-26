@@ -121,6 +121,16 @@ dependencies = [
     dependency('libswresample', static: static),
     dependency('libswscale', static: static),
     dependency('sdl2', version: '>= 2.0.5', static: static),
+    cc.find_library('tesseract', required: true),
+    cc.find_library('stdc++', required: true),  # Add C++ standard library
+    dependency('lept', static: static),
+    dependency('libpng', static: static),
+    dependency('libjpeg', static: static),
+    dependency('libopenjp2', static: static),
+    dependency('libgif', static: static),
+    dependency('libtiff-4', static: static),
+    dependency('libwebp', static: static),
+    dependency('libwebpmux', static: static),
 ]
 
 if v4l2_support

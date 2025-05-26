@@ -14,6 +14,7 @@ RUN apt update && apt install -y \
     libusb-1.0-0 \
     libusb-1.0-0-dev \
     libv4l-dev \
+    libtesseract-dev \
     mingw-w64 \
     mingw-w64-tools \
     libz-mingw-w64-dev \
@@ -27,6 +28,12 @@ RUN apt update && apt install -y \
     libtool \
     python3 \
     python3-pip \
+    libpng-dev \
+    libjpeg-dev \
+    libopenjp2-7-dev \
+    libgif-dev \
+    libtiff-dev \
+    libwebp-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
