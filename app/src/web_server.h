@@ -16,8 +16,12 @@ struct sc_web_server {
 // Initialize the web server
 bool
 sc_web_server_init(struct sc_web_server *server,
-                   struct sc_input_manager *input_manager,
                    const char *listening_addr);
+
+// Set the input manager for the web server
+void
+sc_web_server_set_input_manager(struct sc_web_server *server,
+                                struct sc_input_manager *input_manager);
 
 // Start the web server (non-blocking)
 bool

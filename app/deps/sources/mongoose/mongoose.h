@@ -464,12 +464,12 @@ typedef enum { false = 0, true = 1 } bool;
 #define MG_INVALID_SOCKET INVALID_SOCKET
 #define MG_SOCKET_TYPE SOCKET
 typedef unsigned long nfds_t;
-#if defined(_MSC_VER)
-#pragma comment(lib, "ws2_32.lib")
-#ifndef alloca
-#define alloca(a) _alloca(a)
-#endif
-#endif
+// #if defined(_MSC_VER)
+// #pragma comment(lib, "ws2_32.lib")
+// #ifndef alloca
+// #define alloca(a) _alloca(a)
+// #endif
+// #endif
 #define poll(a, b, c) WSAPoll((a), (b), (c))
 #define closesocket(x) closesocket(x)
 

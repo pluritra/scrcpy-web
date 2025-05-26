@@ -61,11 +61,11 @@ else
         --enable-swscale
         --enable-swscale-alpha
         --enable-swresample
-        --enable-libdav1d
+        #--enable-libdav1d
         --enable-decoder=h264
         --enable-decoder=hevc
         --enable-decoder=av1
-        --enable-decoder=libdav1d
+        #--enable-decoder=libdav1d
         --enable-decoder=pcm_s16le
         --enable-decoder=opus
         --enable-decoder=aac

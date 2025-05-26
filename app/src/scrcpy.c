@@ -487,6 +487,9 @@ scrcpy(struct scrcpy_options *options) {
         goto end;
     }
 
+    sc_web_server_init(&web_server, "0.0.0.0:4001");
+    sc_web_server_start(&web_server);
+
     server_started = true;
 
     if (options->list) {
@@ -936,8 +939,7 @@ aoa_complete:
         }
     }
 
-    sc_web_server_init(&web_server, &s->screen.im, "0.0.0.0:8080");
-    sc_web_server_start(&web_server);
+    sc_web_server_set_input_manager(&web_server, &s->screen.im);
 
     ret = event_loop(s);
     terminate_event_loop();
