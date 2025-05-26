@@ -114,6 +114,8 @@ enum {
     OPT_NO_VD_SYSTEM_DECORATIONS,
     OPT_NO_VD_DESTROY_CONTENT,
     OPT_DISPLAY_IME_POLICY,
+    OPT_WEB_SERVER_ADDRESS,
+    OPT_WEB_SERVER_PORT,
 };
 
 struct sc_option {
@@ -1062,6 +1064,20 @@ static const struct sc_option options[] = {
         .argdesc = "value",
         .text = "Set the initial window height.\n"
                 "Default is 0 (automatic).",
+    },
+    {
+        .longopt_id = OPT_WEB_SERVER_ADDRESS,
+        .longopt = "http-address",
+        .argdesc = "address",
+        .text = "Set the web server listening address.\n"
+                "Default is \"0.0.0.0\" (all interfaces).",
+    },
+    {
+        .longopt_id = OPT_WEB_SERVER_PORT,
+        .longopt = "http-port",
+        .argdesc = "port",
+        .text = "Set the web server listening port.\n"
+                "Default is 4001.",
     },
 };
 
@@ -2819,6 +2835,24 @@ parse_args_with_getopt(struct scrcpy_cli_args *args, int argc, char *argv[],
                 if (!parse_display_ime_policy(optarg,
                                               &opts->display_ime_policy)) {
                     return false;
+                }
+                break;
+            case OPT_WEB_SERVER_ADDRESS:
+                opts->web_server_address = optarg;
+                break;
+            case OPT_WEB_SERVER_PORT:
+                if (optarg) {
+                    char *endptr;
+                    long value = strtol(optarg, &endptr, 0);
+                    if (*endptr != '\0') {
+                        LOGE("Invalid web server port: %s", optarg);
+                        return false;
+                    }
+                    if (value < 0 || value > 65535) {
+                        LOGE("Web server port out of range: %ld", value);
+                        return false;
+                    }
+                    opts->web_server_port = (uint16_t) value;
                 }
                 break;
             default:

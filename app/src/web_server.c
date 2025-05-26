@@ -197,6 +197,7 @@ static bool write_frame_to_memory(const AVFrame *frame, const char *format,
     bool success;
     if (strcmp(format, "bmp") == 0) {
         success = SDL_SaveBMP_RW(surface, rw, 0) == 0;
+    // TODO: Uncomment and implement PNG/JPG saving when available
     // } else if (strcmp(format, "png") == 0) {
     //     success = IMG_SavePNG_RW(surface, rw) == 0;
     // } else if (strcmp(format, "jpg") == 0 || strcmp(format, "jpeg") == 0) {
@@ -258,10 +259,6 @@ static void handle_frame(struct mg_connection *nc, struct mg_http_message *hm, s
 
     mg_printf(nc, "HTTP/1.1 %d %s\r\nContent-Type: %s\r\nContent-Length: %u\r\n\r\n",
               200, mgx_http_status_code_str(200), content_type, size);
-    // mg_printf("HTTP/1.1 200 OK\r\n"
-    //               "Content-Type: %s\r\n"
-    //               "Content-Length: %u\r\n\r\n",
-    //               content_type, size);
     mg_send(nc, buffer, size);
     mg_send(nc, "\r\n", 2);
     

@@ -241,6 +241,8 @@ struct scrcpy_options {
     const char *camera_id;
     const char *camera_size;
     const char *camera_ar;
+    const char *web_server_address; // Web server listening address
+    uint16_t web_server_port;      // Web server port
     uint16_t camera_fps;
     enum sc_log_level log_level;
     enum sc_codec video_codec;

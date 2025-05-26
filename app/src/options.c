@@ -113,6 +113,8 @@ const struct scrcpy_options scrcpy_options_default = {
     .angle = NULL,
     .vd_destroy_content = true,
     .vd_system_decorations = true,
+    .web_server_address = "0.0.0.0",
+    .web_server_port = 4001,
 };
 
 enum sc_orientation

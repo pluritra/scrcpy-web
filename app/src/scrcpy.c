@@ -485,9 +485,11 @@ scrcpy(struct scrcpy_options *options) {
 
     if (!sc_server_start(&s->server)) {
         goto end;
-    }
-
-    sc_web_server_init(&web_server, "0.0.0.0:4001");
+    }    // Initialize web server with configured address and port
+    char web_server_addr[128];
+    snprintf(web_server_addr, sizeof(web_server_addr), "%s:%d", 
+             options->web_server_address, options->web_server_port);
+    sc_web_server_init(&web_server, web_server_addr);
     sc_web_server_start(&web_server);
 
     server_started = true;
