@@ -309,7 +309,7 @@ apply_orientation_transform(struct sc_input_manager *im,
     sc_screen_set_orientation(screen, new_orientation);
 }
 
-static void
+void
 sc_input_manager_process_text_input(struct sc_input_manager *im,
                                     const SDL_TextInputEvent *event) {
     if (!im->kp->ops->process_text) {

@@ -10,6 +10,7 @@
 #include <libswscale/swscale.h>
 #include <SDL2/SDL.h>
 #include "mongoose.h"
+#include "util/intmap.h"
 
 #define API_PREFIX "/api/v1"
 
@@ -51,10 +52,133 @@ void
 rotate_device(struct sc_input_manager *im);
 void
 open_hard_keyboard_settings(struct sc_input_manager *im);
+void
+sc_input_manager_process_text_input(struct sc_input_manager *im,
+                                    const SDL_TextInputEvent *event);
 bool
 simulate_virtual_finger(struct sc_input_manager *im,
                         enum android_motionevent_action action,
                         struct sc_point point);
+
+enum android_keycode
+convert_keycode2(enum sc_keycode from) {
+    static const struct sc_intmap_entry keys[] = {
+        {SC_KEYCODE_RETURN,    AKEYCODE_ENTER},
+        {SC_KEYCODE_KP_ENTER,  AKEYCODE_NUMPAD_ENTER},
+        {SC_KEYCODE_ESCAPE,    AKEYCODE_ESCAPE},
+        {SC_KEYCODE_BACKSPACE, AKEYCODE_DEL},
+        {SC_KEYCODE_TAB,       AKEYCODE_TAB},
+        {SC_KEYCODE_PAGEUP,    AKEYCODE_PAGE_UP},
+        {SC_KEYCODE_DELETE,    AKEYCODE_FORWARD_DEL},
+        {SC_KEYCODE_HOME,      AKEYCODE_MOVE_HOME},
+        {SC_KEYCODE_END,       AKEYCODE_MOVE_END},
+        {SC_KEYCODE_PAGEDOWN,  AKEYCODE_PAGE_DOWN},
+        {SC_KEYCODE_RIGHT,     AKEYCODE_DPAD_RIGHT},
+        {SC_KEYCODE_LEFT,      AKEYCODE_DPAD_LEFT},
+        {SC_KEYCODE_DOWN,      AKEYCODE_DPAD_DOWN},
+        {SC_KEYCODE_UP,        AKEYCODE_DPAD_UP},
+        {SC_KEYCODE_LCTRL,     AKEYCODE_CTRL_LEFT},
+        {SC_KEYCODE_RCTRL,     AKEYCODE_CTRL_RIGHT},
+        {SC_KEYCODE_LSHIFT,    AKEYCODE_SHIFT_LEFT},
+        {SC_KEYCODE_RSHIFT,    AKEYCODE_SHIFT_RIGHT},
+        {SC_KEYCODE_LALT,      AKEYCODE_ALT_LEFT},
+        {SC_KEYCODE_RALT,      AKEYCODE_ALT_RIGHT},
+        {SC_KEYCODE_LGUI,      AKEYCODE_META_LEFT},
+        {SC_KEYCODE_RGUI,      AKEYCODE_META_RIGHT},
+        
+        {SC_KEYCODE_KP_0,      AKEYCODE_INSERT},
+        {SC_KEYCODE_KP_1,      AKEYCODE_MOVE_END},
+        {SC_KEYCODE_KP_2,      AKEYCODE_DPAD_DOWN},
+        {SC_KEYCODE_KP_3,      AKEYCODE_PAGE_DOWN},
+        {SC_KEYCODE_KP_4,      AKEYCODE_DPAD_LEFT},
+        {SC_KEYCODE_KP_6,      AKEYCODE_DPAD_RIGHT},
+        {SC_KEYCODE_KP_7,      AKEYCODE_MOVE_HOME},
+        {SC_KEYCODE_KP_8,      AKEYCODE_DPAD_UP},
+        {SC_KEYCODE_KP_9,      AKEYCODE_PAGE_UP},
+        {SC_KEYCODE_KP_PERIOD, AKEYCODE_FORWARD_DEL},
+        
+        {SC_KEYCODE_a,         AKEYCODE_A},
+        {SC_KEYCODE_b,         AKEYCODE_B},
+        {SC_KEYCODE_c,         AKEYCODE_C},
+        {SC_KEYCODE_d,         AKEYCODE_D},
+        {SC_KEYCODE_e,         AKEYCODE_E},
+        {SC_KEYCODE_f,         AKEYCODE_F},
+        {SC_KEYCODE_g,         AKEYCODE_G},
+        {SC_KEYCODE_h,         AKEYCODE_H},
+        {SC_KEYCODE_i,         AKEYCODE_I},
+        {SC_KEYCODE_j,         AKEYCODE_J},
+        {SC_KEYCODE_k,         AKEYCODE_K},
+        {SC_KEYCODE_l,         AKEYCODE_L},
+        {SC_KEYCODE_m,         AKEYCODE_M},
+        {SC_KEYCODE_n,         AKEYCODE_N},
+        {SC_KEYCODE_o,         AKEYCODE_O},
+        {SC_KEYCODE_p,         AKEYCODE_P},
+        {SC_KEYCODE_q,         AKEYCODE_Q},
+        {SC_KEYCODE_r,         AKEYCODE_R},
+        {SC_KEYCODE_s,         AKEYCODE_S},
+        {SC_KEYCODE_t,         AKEYCODE_T},
+        {SC_KEYCODE_u,         AKEYCODE_U},
+        {SC_KEYCODE_v,         AKEYCODE_V},
+        {SC_KEYCODE_w,         AKEYCODE_W},
+        {SC_KEYCODE_x,         AKEYCODE_X},
+        {SC_KEYCODE_y,         AKEYCODE_Y},
+        {SC_KEYCODE_z,         AKEYCODE_Z},
+        {SC_KEYCODE_SPACE,     AKEYCODE_SPACE},
+
+        {SC_KEYCODE_HASH,          AKEYCODE_POUND},
+        {SC_KEYCODE_PERCENT,       AKEYCODE_PERIOD},
+        {SC_KEYCODE_QUOTE,         AKEYCODE_APOSTROPHE},
+        {SC_KEYCODE_ASTERISK,      AKEYCODE_STAR},
+        {SC_KEYCODE_PLUS,          AKEYCODE_PLUS},
+        {SC_KEYCODE_COMMA,         AKEYCODE_COMMA},
+        {SC_KEYCODE_MINUS,         AKEYCODE_MINUS},
+        {SC_KEYCODE_PERIOD,        AKEYCODE_PERIOD},
+        {SC_KEYCODE_SLASH,         AKEYCODE_SLASH},
+        {SC_KEYCODE_0,             AKEYCODE_0},
+        {SC_KEYCODE_1,             AKEYCODE_1},
+        {SC_KEYCODE_2,             AKEYCODE_2},
+        {SC_KEYCODE_3,             AKEYCODE_3},
+        {SC_KEYCODE_4,             AKEYCODE_4},
+        {SC_KEYCODE_5,             AKEYCODE_5},
+        {SC_KEYCODE_6,             AKEYCODE_6},
+        {SC_KEYCODE_7,             AKEYCODE_7},
+        {SC_KEYCODE_8,             AKEYCODE_8},
+        {SC_KEYCODE_9,             AKEYCODE_9},
+        {SC_KEYCODE_SEMICOLON,     AKEYCODE_SEMICOLON},
+        {SC_KEYCODE_EQUALS,        AKEYCODE_EQUALS},
+        {SC_KEYCODE_AT,            AKEYCODE_AT},
+        {SC_KEYCODE_LEFTBRACKET,   AKEYCODE_LEFT_BRACKET},
+        {SC_KEYCODE_BACKSLASH,     AKEYCODE_BACKSLASH},
+        {SC_KEYCODE_RIGHTBRACKET,  AKEYCODE_RIGHT_BRACKET},
+        {SC_KEYCODE_BACKQUOTE,     AKEYCODE_GRAVE},
+        {SC_KEYCODE_KP_1,          AKEYCODE_NUMPAD_1},
+        {SC_KEYCODE_KP_2,          AKEYCODE_NUMPAD_2},
+        {SC_KEYCODE_KP_3,          AKEYCODE_NUMPAD_3},
+        {SC_KEYCODE_KP_4,          AKEYCODE_NUMPAD_4},
+        {SC_KEYCODE_KP_5,          AKEYCODE_NUMPAD_5},
+        {SC_KEYCODE_KP_6,          AKEYCODE_NUMPAD_6},
+        {SC_KEYCODE_KP_7,          AKEYCODE_NUMPAD_7},
+        {SC_KEYCODE_KP_8,          AKEYCODE_NUMPAD_8},
+        {SC_KEYCODE_KP_9,          AKEYCODE_NUMPAD_9},
+        {SC_KEYCODE_KP_0,          AKEYCODE_NUMPAD_0},
+        {SC_KEYCODE_KP_DIVIDE,     AKEYCODE_NUMPAD_DIVIDE},
+        {SC_KEYCODE_KP_MULTIPLY,   AKEYCODE_NUMPAD_MULTIPLY},
+        {SC_KEYCODE_KP_MINUS,      AKEYCODE_NUMPAD_SUBTRACT},
+        {SC_KEYCODE_KP_PLUS,       AKEYCODE_NUMPAD_ADD},
+        {SC_KEYCODE_KP_PERIOD,     AKEYCODE_NUMPAD_DOT},
+        {SC_KEYCODE_KP_EQUALS,     AKEYCODE_NUMPAD_EQUALS},
+        {SC_KEYCODE_KP_LEFTPAREN,  AKEYCODE_NUMPAD_LEFT_PAREN},
+        {SC_KEYCODE_KP_RIGHTPAREN, AKEYCODE_NUMPAD_RIGHT_PAREN},
+    };
+
+    const struct sc_intmap_entry *entry =
+        SC_INTMAP_FIND_ENTRY(keys, from);
+    if (entry) {
+        return entry->value;
+    }
+
+    return AKEYCODE_UNKNOWN;
+}
 
 static const char *mgx_http_status_code_str(int status_code) {
   switch (status_code) {
@@ -127,8 +251,9 @@ static const char *mgx_http_status_code_str(int status_code) {
 
 // Helper function to send JSON response
 static void send_json_response(struct mg_connection *nc, int status_code, const char *json) {
-    mg_printf(nc, "HTTP/1.1 %d %s\r\nContent-Type: application/json\r\nContent-Length: %u\r\n\r\n%s",
+    mg_printf(nc, "HTTP/1.1 %d %s\r\nContent-Type: application/json\r\nContent-Length: %u\r\n\r\n%s\r\n",
               status_code, mgx_http_status_code_str(status_code), strlen(json), json);
+    nc->is_draining = 1;
 }
 
 // Helper function to send error response
@@ -184,7 +309,12 @@ static bool write_frame_to_memory(const AVFrame *frame, const char *format,
     }
 
     // Create RWops for memory output
-    size_t rw_buffer_size = surface->h * surface->pitch + 1024;
+    size_t rw_buffer_size;
+    if (strcmp(format, "bmp") == 0) {
+        rw_buffer_size = surface->h * surface->pitch + 54; // BMP header size + pixel data
+    } else if (strcmp(format, "png") == 0 || strcmp(format, "jpg") == 0) {
+        rw_buffer_size = surface->h * surface->pitch; // Rough estimate, actual size may vary
+    }
     uint8_t *rw_buffer = malloc(rw_buffer_size);
     SDL_RWops *rw = SDL_RWFromMem(rw_buffer, rw_buffer_size);
     if (!rw) {
@@ -210,7 +340,9 @@ static bool write_frame_to_memory(const AVFrame *frame, const char *format,
         *out_size = SDL_RWsize(rw);
         *out_buffer = malloc(*out_size);
         memcpy(*out_buffer, rw_buffer, *out_size);
-        SDL_RWread(rw, *out_buffer, *out_size, 1);
+
+        // For unknown reasons, SDL_RWread does not return the data
+        // SDL_RWread(rw, *out_buffer, *out_size, 1);
     }
 
     SDL_RWclose(rw);
@@ -261,6 +393,7 @@ static void handle_frame(struct mg_connection *nc, struct mg_http_message *hm, s
               200, mgx_http_status_code_str(200), content_type, size);
     mg_send(nc, buffer, size);
     mg_send(nc, "\r\n", 2);
+    nc->is_draining = 1;
     
     free(buffer);
 }
@@ -273,11 +406,33 @@ static void handle_keycode(struct mg_connection *nc, struct mg_http_message *hm,
     mg_http_get_var(&hm->body, "keycode", keycode, sizeof(keycode));
     mg_http_get_var(&hm->body, "action", action, sizeof(action));
     
-    enum android_keycode key = atoi(keycode);
+    enum sc_keycode sc_keycode = atoi(keycode);
+    enum android_keycode a_keycode = convert_keycode2(sc_keycode);
+    LOGI("Keycode: %s, Keycode sc enum: %d, Keycode android enum: %d, Action: %s", keycode, sc_keycode, a_keycode, action);
     enum sc_action act = strcmp(action, "up") == 0 ? SC_ACTION_UP : SC_ACTION_DOWN;
     
-    send_keycode(im, key, act, "KEY");
+    send_keycode(im, a_keycode, act, "KEY");
     send_json_response(nc, 200, "{\"status\": \"success\"}");
+}
+
+static void handle_text_input(struct mg_connection *nc, struct mg_http_message *hm, struct sc_input_manager *im) {
+    LOGI("Handling text input request");
+    char text[256];
+    mg_http_get_var(&hm->body, "text", text, sizeof(text));
+    
+    if (strlen(text) > 0) {
+        // Send the text input to the device
+        SDL_TextInputEvent event;
+        event.type = SDL_TEXTINPUT;
+        event.timestamp = SDL_GetTicks();
+        strncpy(event.text, text, min(sizeof(event.text) - 1, 32)); // Ensure we don't overflow
+        event.text[sizeof(event.text) - 1] = '\0'; // Ensure null-termination
+
+        sc_input_manager_process_text_input(im, &event);
+        send_json_response(nc, 200, "{\"status\": \"success\"}");
+    } else {
+        send_error_response(nc, 400, "Text input cannot be empty");
+    }
 }
 
 // Route handler for /api/v1/home
@@ -364,8 +519,11 @@ static void handle_back_or_screen_on(struct mg_connection *nc, struct mg_http_me
 }
 
 // Route handler for various panel actions
-static void handle_panel_action(struct mg_connection *nc, struct mg_http_message *hm, struct sc_input_manager *im, const char *action) {
-    LOGI("Handling panel action request: %s", action);
+static void handle_panel_action(struct mg_connection *nc, struct mg_http_message *hm, struct sc_input_manager *im) {
+    LOGI("Handling panel action request");
+    char action[32];
+    mg_http_get_var(&hm->body, "action", action, sizeof(action));    
+
     if (strcmp(action, "expand_notification") == 0) {
         expand_notification_panel(im);
     } else if (strcmp(action, "expand_settings") == 0) {
@@ -379,13 +537,11 @@ static void handle_panel_action(struct mg_connection *nc, struct mg_http_message
 // Route handler for clipboard operations
 static void handle_clipboard(struct mg_connection *nc, struct mg_http_message *hm, struct sc_input_manager *im) {
     LOGI("Handling clipboard request");
-    char action[32];
-    mg_http_get_var(&hm->body, "action", action, sizeof(action));
-    
-    if (strcmp(action, "get") == 0) {
+    if (mg_vcmp(&hm->method, "GET")) {
         get_device_clipboard(im, SC_COPY_KEY_COPY);
         send_json_response(nc, 200, "{\"status\": \"success\", \"message\": \"Clipboard request sent\"}");
-    } else if (strcmp(action, "paste") == 0) {
+
+    } else if (mg_vcmp(&hm->method, "PUT")) {
         clipboard_paste(im);
         send_json_response(nc, 200, "{\"status\": \"success\", \"message\": \"Paste request sent\"}");
     }
@@ -420,10 +576,11 @@ static void handle_keyboard_settings(struct mg_connection *nc, struct mg_http_me
 static void handle_virtual_finger(struct mg_connection *nc, struct mg_http_message *hm, struct sc_input_manager *im) {
     LOGI("Handling virtual finger request");
     char action[32], x[32], y[32];
-    
+
     mg_http_get_var(&hm->body, "action", action, sizeof(action));
     mg_http_get_var(&hm->body, "x", x, sizeof(x));
     mg_http_get_var(&hm->body, "y", y, sizeof(y));
+    LOGI("Virtual finger action: %s, x: %s, y: %s", action, x, y);
     
     enum android_motionevent_action act;
     if (strcmp(action, "down") == 0) {
@@ -457,95 +614,101 @@ static void handle_virtual_finger(struct mg_connection *nc, struct mg_http_messa
 // Main event handler for all HTTP requests
 static void ev_handler(struct mg_connection *nc, int ev, void *ev_data, void *user_data) {
     struct sc_web_server *server = (struct sc_web_server *)user_data;
-    struct mg_http_message *hm = (struct mg_http_message *)ev_data;
     
-    if (ev != MG_EV_HTTP_MSG) { // XXX
-        return;
-    }
-    
-    // Log the request URI
-    char *uri = (char*)malloc(hm->uri.len + 1);
-    strncpy(uri, hm->uri.ptr, hm->uri.len);
-    uri[hm->uri.len] = '\0';
-    LOGI("Received HTTP request: %s", uri);
-    free(uri);
-    
-    // Define the routes
-    struct {
-        const char *uri;
-        void (*handler)(struct mg_connection *, struct mg_http_message *, struct sc_input_manager *);
-    } routes[] = {
-        { API_PREFIX "/keycode", handle_keycode},
-        { API_PREFIX "/home", handle_home},
-        { API_PREFIX "/back", handle_back},
-        { API_PREFIX "/app_switch", handle_app_switch},
-        { API_PREFIX "/power", handle_power},
-        { API_PREFIX "/volume", handle_volume},
-        { API_PREFIX "/menu", handle_menu},
-        { API_PREFIX "/back_or_screen_on", handle_back_or_screen_on},
-        { API_PREFIX "/virtual_finger", handle_virtual_finger}
-    };
-    const size_t num_routes = sizeof(routes) / sizeof(routes[0]);
+    if (ev == MG_EV_HTTP_MSG) {
+        struct mg_http_message *hm = (struct mg_http_message *)ev_data;
+        
+        // Log the request URI
+        char *uri = (char*)malloc(hm->uri.len + 1);
+        strncpy(uri, hm->uri.ptr, hm->uri.len);
+        uri[hm->uri.len] = '\0';
+        LOGI("Received HTTP request: %s", uri);
+        free(uri);
+        
+        // Define the routes
+        struct {
+            const char *uri;
+            void (*handler)(struct mg_connection *, struct mg_http_message *, struct sc_input_manager *);
+        } routes[] = {
+            { API_PREFIX "/keycode", handle_keycode},
+            { API_PREFIX "/text", handle_text_input},
+            { API_PREFIX "/home", handle_home},
+            { API_PREFIX "/back", handle_back},
+            { API_PREFIX "/app_switch", handle_app_switch},
+            { API_PREFIX "/power", handle_power},
+            { API_PREFIX "/volume", handle_volume},
+            { API_PREFIX "/menu", handle_menu},
+            { API_PREFIX "/back_or_screen_on", handle_back_or_screen_on},
+            { API_PREFIX "/panel", handle_panel_action},        
+            { API_PREFIX "/virtual_finger", handle_virtual_finger}
+        };
+        const size_t num_routes = sizeof(routes) / sizeof(routes[0]);
 
-    // Find and execute the appropriate handler
-    for (size_t i = 0; i < num_routes; i++) {
-        if (mg_vcmp(&hm->uri, routes[i].uri) == 0) {
-            if (mg_vcmp(&hm->method, "POST") == 0) {
-                routes[i].handler(nc, hm, server->input_manager);
+        // Find and execute the appropriate handler
+        for (size_t i = 0; i < num_routes; i++) {
+            if (mg_vcmp(&hm->uri, routes[i].uri) == 0) {
+                if (mg_vcmp(&hm->method, "POST") == 0) {
+                    routes[i].handler(nc, hm, server->input_manager);
+                    nc->is_draining = 1;  // Mark connection for closing after sending
+                    return;
+                }
+                LOGE("Invalid method for %s: %s", routes[i].uri, hm->method.ptr);
+                send_error_response(nc, 405, "Method not allowed");
+                nc->is_draining = 1;  // Mark connection for closing after sending
                 return;
             }
-            LOGE("Invalid method for %s: %s", routes[i].uri, hm->method.ptr);
+        }
+        
+        // Handle frame endpoints
+        if (mg_vcmp(&hm->uri, API_PREFIX "/frame") == 0) {
+            if (mg_vcmp(&hm->method, "GET") == 0) {
+                handle_frame(nc, hm, server);
+                nc->is_draining = 1;  // Mark connection for closing after sending
+                return;
+            }
             send_error_response(nc, 405, "Method not allowed");
+            nc->is_draining = 1;  // Mark connection for closing after sending
             return;
         }
-    }
+        
+        // Handle other routes
+        if (mg_vcmp(&hm->uri, API_PREFIX "/clipboard") == 0) {
+            if (mg_vcmp(&hm->method, "GET") == 0 || mg_vcmp(&hm->method, "PUT") == 0) {
+                handle_clipboard(nc, hm, server->input_manager);
+                nc->is_draining = 1;  // Mark connection for closing after sending
+                return;
+            }
+            send_error_response(nc, 405, "Method not allowed");
+            nc->is_draining = 1;  // Mark connection for closing after sending
+            return;
+        }
+        
+        if (mg_vcmp(&hm->uri, API_PREFIX "/display/power") == 0) {
+            handle_display_power(nc, hm, server->input_manager);
+            nc->is_draining = 1;  // Mark connection for closing after sending
+            return;
+        }
+        
+        if (mg_vcmp(&hm->uri, API_PREFIX "/device/rotate") == 0) {
+            handle_rotate_device(nc, hm, server->input_manager);
+            nc->is_draining = 1;  // Mark connection for closing after sending
+            return;
+        }
+        
+        if (mg_vcmp(&hm->uri, API_PREFIX "/keyboard/settings") == 0) {
+            handle_keyboard_settings(nc, hm, server->input_manager);
+            nc->is_draining = 1;  // Mark connection for closing after sending
+            return;
+        }
+        
+        LOGE("No handler for %s", hm->uri.ptr);
+        send_error_response(nc, 404, "Not found");
+        nc->is_draining = 1;  // Mark connection for closing after sending
 
-    // Special handling for panel actions
-    if (mg_vcmp(&hm->uri, API_PREFIX "/panel") == 0) {
-        char action[32];
-        mg_http_get_var(&hm->body, "action", action, sizeof(action));
-        handle_panel_action(nc, hm, server->input_manager, action);
-        return;
+    } else if (ev == MG_EV_ERROR) {
+        // Handle connection error
+        LOGE("Connection error: %s", (char *)ev_data);
     }
-    
-    // Handle frame endpoints
-    if (mg_vcmp(&hm->uri, API_PREFIX "/frame") == 0) {
-        if (mg_vcmp(&hm->method, "GET") == 0) {
-            handle_frame(nc, hm, server);
-            return;
-        }
-        send_error_response(nc, 405, "Method not allowed");
-        return;
-    }
-    
-    // Handle other routes
-    if (mg_vcmp(&hm->uri, API_PREFIX "/clipboard") == 0) {
-        handle_clipboard(nc, hm, server->input_manager);
-        return;
-    }
-    
-    if (mg_vcmp(&hm->uri, API_PREFIX "/display/power") == 0) {
-        handle_display_power(nc, hm, server->input_manager);
-        return;
-    }
-    
-    if (mg_vcmp(&hm->uri, API_PREFIX "/device/rotate") == 0) {
-        handle_rotate_device(nc, hm, server->input_manager);
-        return;
-    }
-    
-    if (mg_vcmp(&hm->uri, API_PREFIX "/keyboard/settings") == 0) {
-        handle_keyboard_settings(nc, hm, server->input_manager);
-        return;
-    }
-    
-    if (mg_vcmp(&hm->uri, API_PREFIX "/virtual_finger") == 0) {
-        handle_virtual_finger(nc, hm, server->input_manager);
-        return;
-    }
-    
-    LOGE("No handler for %s", hm->uri.ptr);
-    send_error_response(nc, 404, "Not found");
 }
 
 void

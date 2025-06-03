@@ -660,6 +660,9 @@ sc_screen_apply_frame(struct sc_screen *screen) {
         return true;
     }
 
+    // Update web server frame
+    sc_web_server_set_frame(&web_server, screen->frame);
+
     res = sc_display_update_texture(&screen->display, frame);
     if (res == SC_DISPLAY_RESULT_ERROR) {
         return false;
@@ -678,7 +681,7 @@ sc_screen_apply_frame(struct sc_screen *screen) {
             // Capture mouse on start
             sc_mouse_capture_set_active(&screen->mc, true);
         }
-    }
+    } 
 
     sc_screen_render(screen, false);
     return true;
@@ -699,18 +702,12 @@ sc_screen_update_frame(struct sc_screen *screen) {
             av_frame_unref(screen->resume_frame);
         }
         sc_frame_buffer_consume(&screen->fb, screen->resume_frame);
-            
-        // Update web server frame
-        sc_web_server_set_frame(&web_server, screen->frame);
         
         return true;
     }
 
     av_frame_unref(screen->frame);
     sc_frame_buffer_consume(&screen->fb, screen->frame);
-    
-    // Update web server frame
-    sc_web_server_set_frame(&web_server, screen->frame);
     
     return sc_screen_apply_frame(screen);
 }

@@ -1070,7 +1070,7 @@ static const struct sc_option options[] = {
         .longopt = "http-address",
         .argdesc = "address",
         .text = "Set the web server listening address.\n"
-                "Default is \"0.0.0.0\" (all interfaces).",
+                "Default is \"127.0.0.1\" (all interfaces).",
     },
     {
         .longopt_id = OPT_WEB_SERVER_PORT,
