@@ -425,7 +425,7 @@ static void handle_text_input(struct mg_connection *nc, struct mg_http_message *
         SDL_TextInputEvent event;
         event.type = SDL_TEXTINPUT;
         event.timestamp = SDL_GetTicks();
-        strncpy(event.text, text, min(sizeof(event.text) - 1, 32)); // Ensure we don't overflow
+        strncpy(event.text, text, MIN(sizeof(event.text) - 1, 32)); // Ensure we don't overflow
         event.text[sizeof(event.text) - 1] = '\0'; // Ensure null-termination
 
         sc_input_manager_process_text_input(im, &event);
