@@ -36,7 +36,7 @@ WORKDIR /src/scrcpy
 COPY . .
 
 # Build commands
-RUN chmod +x release/build_linux.sh release/build_windows.sh
+RUN chmod +x release/build_linux.sh release/build_windows.sh release/build_macos.sh
 
 # Build for Linux x86_64
 RUN release/build_linux.sh x86_64
@@ -47,7 +47,15 @@ RUN release/build_windows.sh 32
 # Build for Windows 64-bit
 RUN release/build_windows.sh 64
 
+# Build for macOS x86_64
+#RUN release/build_macos.sh x86_64
+
+# Build for macOS aarch64
+#RUN release/build_macos.sh aarch64
+
 # The builds will be available in these directories:
 # - /src/scrcpy/release/work/build-linux-x86_64/dist/
 # - /src/scrcpy/release/work/build-win32/dist/
 # - /src/scrcpy/release/work/build-win64/dist/
+# - /src/scrcpy/release/work/build-macos-x86_64/dist/
+# - /src/scrcpy/release/work/build-macos-aarch64/dist/

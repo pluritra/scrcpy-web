@@ -6,7 +6,7 @@ cd .. # root project dir
 
 if [[ $# != 1 ]]
 then
-    echo "Syntax: $0 <arch>" >&2
+    echo "ERROR: $0 must be called with one argument: x86_64 or aarch64" >&2
     exit 1
 fi
 
